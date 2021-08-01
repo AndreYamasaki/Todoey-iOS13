@@ -12,11 +12,12 @@ class TodoListViewController: UITableViewController {
     //MARK: - Attributes
     
     var itemArray = [Item]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
-    let defaults = UserDefaults.standard
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+//        print(dataFilePath!)
         
         tableView.delegate = self
         
@@ -32,9 +33,9 @@ class TodoListViewController: UITableViewController {
         newItem3.title = "test 3"
         itemArray.append(newItem3)
         
-        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-            itemArray = items
-        }
+//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
+//            itemArray = items
+//        }
     }
     
     //MARK: - TableView DataSource
@@ -63,8 +64,8 @@ class TodoListViewController: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        tableView.reloadData()
-        
+        saveItems()
+                
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -79,9 +80,9 @@ class TodoListViewController: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             self.itemArray.append(newItem)
-            self.defaults.set(self.itemArray, forKey: "ToDoListArray")
             
-            self.tableView.reloadData()
+            self.saveItems()
+            
         }
         
         alert.addTextField { (alertTextField) in
@@ -90,6 +91,22 @@ class TodoListViewController: UITableViewController {
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    //MARK: - Model manipulation methods
+    
+    func saveItems() {
+        
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("error encoding data array: \(error)")
+        }
+        
+        self.tableView.reloadData()
     }
 }
 
